@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <style type="text/css">
+        #chat-container{
+            width: 600px;
+            max-width: calc(100% - 40px);
+            display: block;
+            margin: auto;
+        }
+
+        .mensagem{
+            padding: 10px;
+            background: #eee;
+            border-radius: 16px;
+            margin-bottom: 8px;
+        }
+
+        .mensagem.usuario{
+            text-align: left;
+        }
+
+        .mensagem.ia{
+            text-align: right;
+        }
+
+        #input-container{
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<div id="chat-container">
+    <h1>Chatbot com GPT 4</h1>
+    <div id="container-mensagens"></div>
+    <div id="input-container">
+        <input type="text" id="input-mensagem" placeholder="Digite a sua mensagem">
+        <button id="btn-enviar">Enviar</button>
+    </div>
+</div>
+<script type="text/javascript">
+    document.getElementById('btn-enviar').onclick = function(){
+        const mensagemInput = document.getElementById('input-mensagem');
+        const mensagemUsuario = mensagemInput.value;
+        if(!mensagemUsuario) return;
+
+        adicionarMensagem('usuario', mensagemUsuario);
+
+        mensagemInput.value = '';
+
+        fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({mensagem: mensagemUsuario})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.resposta){
+                adicionarMensagem('ia', data.resposta);
+            } else if(data.erro){
+                adicionarMensagem('ia', 'Erro: '+ data.erro)
+            }
+        })
+        .catch(erro => {
+            adicionarMensagem('ia', 'Erro de conexão.');
+        });
+    }
+
+    function adicionarMensagem(tipo, mensagem){
+        const mensagensDiv = document.getElementById('container-mensagens');
+        const mensagemDiv = document.createElement('div');
+        mensagemDiv.classList.add('mensagem', tipo);
+        mensagemDiv.textContent = mensagem;
+        mensagensDiv.appendChild(mensagemDiv);
+    }
+</script>
+</body>
+</html>
